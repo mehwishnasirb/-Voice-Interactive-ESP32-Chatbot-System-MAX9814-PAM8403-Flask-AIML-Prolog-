@@ -68,12 +68,56 @@ VoiceChatbot/
 - Python 3.8+
 - Flask, gTTS, aiml libraries
 
-```bash
-pip install flask gtts aiml
 
-🔧 Wiring Diagram
-1. MAX9814 → ESP32
-MAX9814 Pin	ESP32 Pin	Function
-VCC	3.3V	Power supply
-GND	GND	Ground
-OUT	GPIO 34	Analog mic input
+## 🔌 Wiring Diagrams
+
+### 2A. ESP32 → MAX98357A (I2S DAC Output) → PAM8403 → Speaker
+
+If you're using the MAX98357A DAC to convert digital audio to analog before amplification:
+
+| MAX98357A Pin | ESP32 Pin | Description        |
+|---------------|-----------|--------------------|
+| VIN           | 5V        | Power              |
+| GND           | GND       | Ground             |
+| DIN           | GPIO 25   | I2S Data Line      |
+| BCLK          | GPIO 26   | Bit Clock          |
+| LRC           | GPIO 22   | Word Select (WS)   |
+
+➡️ Connect **MAX98357A output (L/R)** to **PAM8403 input**, then to the speaker:
+
+| PAM8403 Pin | Connection            |
+|-------------|------------------------|
+| IN+         | MAX98357A L or R out   |
+| IN–         | GND                    |
+| OUT+ / OUT– | Speaker (4Ω 3W)        |
+
+---
+
+### 2B. ESP32 → PAM8403 Direct (Analog DAC Output)
+
+If you're skipping I2S and using ESP32's built-in DAC to output analog audio directly:
+
+| ESP32 Pin  | PAM8403 Pin | Description               |
+|------------|-------------|---------------------------|
+| GPIO 25    | IN+         | DAC1 analog audio out     |
+| GND        | IN–         | Ground (audio reference)  |
+| 5V         | VCC         | Power supply to amplifier |
+| GND        | GND         | Common ground             |
+| OUT+ / OUT–| Speaker     | Audio output terminals     |
+
+🛑 **Important:** Only GPIO 25 and GPIO 26 support DAC on the ESP32.
+
+---
+
+### 🧰 Summary of Required Components
+
+| Component         | Purpose                               |
+|------------------|----------------------------------------|
+| ESP32 Dev Board   | Core microcontroller                  |
+| MAX9814 Microphone| Captures voice                        |
+| MAX98357A (Optional)| I2S DAC for better audio output    |
+| PAM8403 Amplifier | Amplifies analog audio signal         |
+| 4Ω 3W Speaker     | Plays AI-generated responses          |
+| Jumper Wires      | Circuit wiring                        |
+| Breadboard        | Prototype circuit layout              |
+
